@@ -1,0 +1,277 @@
+import java.util.*;
+
+// 1. Clasa Adresa
+class Adresa {
+    private String oras;
+    private String strada;
+
+    public Adresa(String oras, String strada) {
+        this.oras = oras;
+        this.strada = strada;
+    }
+
+    public String getOras() { return oras; }
+    public void setOras(String oras) { this.oras = oras; }
+    public String getStrada() { return strada; }
+    public void setStrada(String strada) { this.strada = strada; }
+
+    @Override
+    public String toString() { return strada + ", " + oras; }
+}
+
+// 2. Clasa de baza Utilizatoreecv             ccc
+
+abstract class Utilizator {
+    protected int id;
+    protected String nume;
+
+    public Utilizator(int id, String nume) {
+        this.id = id;
+        this.nume = nume;
+    }
+
+    public int getId() { return id; }
+    public String getNume() { return nume; }
+}
+
+// 3. Clasa Client
+class Client extends Utilizator {
+    private Adresa adresaLivrare;
+
+    public Client(int id, String nume, Adresa adresaLivrare) {
+        super(id, nume);
+        this.adresaLivrare = adresaLivrare;
+    }
+
+    public Adresa getAdresaLivrare() { return adresaLivrare; }
+    public void setAdresaLivrare(Adresa adresaLivrare) { this.adresaLivrare = adresaLivrare; }
+
+    @Override
+    public String toString() { return "Client: " + nume; }
+}
+
+// 4. Clasa Sofer
+class Sofer extends Utilizator {
+    private String vehicul;
+
+    public Sofer(int id, String nume, String vehicul) {
+        super(id, nume);
+        this.vehicul = vehicul;
+    }
+
+    public String getVehicul() { return vehicul; }
+    public void setVehicul(String vehicul) { this.vehicul = vehicul; }
+
+    @Override
+    public String toString() { return "Sofer: " + nume + " (" + vehicul + ")"; }
+}
+
+// 5. Clasa Produs (Implementeaza Comparable pentru colectia sortata)
+class Produs implements Comparable<Produs> {
+    private String denumire;
+    private double pret;
+
+    public Produs(String denumire, double pret) {
+        this.denumire = denumire;
+        this.pret = pret;
+    }
+
+    public String getDenumire() { return denumire; }
+    public double getPret() { return pret; }
+
+    @Override
+    public int compareTo(Produs p) {
+        return Double.compare(this.pret, p.pret);
+    }
+
+    @Override
+    public String toString() { return denumire + " - " + pret + " RON"; }
+}
+
+// 6. Clasa Recenzie
+class Recenzie {
+    private Client client;
+    private int nota;
+    private String comentariu;
+
+    public Recenzie(Client client, int nota, String comentariu) {
+        this.client = client;
+        this.nota = nota;
+        this.comentariu = comentariu;
+    }
+
+    @Override
+    public String toString() { return nota + "/5 - " + comentariu + " (de la " + client.getNume() + ")"; }
+}
+
+// 7. Clasa Restaurant
+class Restaurant {
+    private String nume;
+    // Colectie sortata (cerinta implementare)
+    private Set<Produs> meniu;
+    private List<Recenzie> recenzii;
+
+    public Restaurant(String nume) {
+        this.nume = nume;
+        this.meniu = new TreeSet<>();
+        this.recenzii = new ArrayList<>();
+    }
+
+    public String getNume() { return nume; }
+    public Set<Produs> getMeniu() { return meniu; }
+    public List<Recenzie> getRecenzii() { return recenzii; }
+
+    public void adaugaProdus(Produs p) { meniu.add(p); }
+    public void adaugaRecenzie(Recenzie r) { recenzii.add(r); }
+
+    @Override
+    public String toString() { return "Restaurant: " + nume; }
+}
+
+// 8. Clasa Comanda
+class Comanda {
+    private static int counter = 1;
+    private int idComanda;
+    private Client client;
+    private Restaurant restaurant;
+    private List<Produs> produse;
+    private Sofer sofer;
+    private boolean finalizata;
+
+    public Comanda(Client client, Restaurant restaurant, List<Produs> produse) {
+        this.idComanda = counter++;
+        this.client = client;
+        this.restaurant = restaurant;
+        this.produse = new ArrayList<>(produse);
+        this.finalizata = false;
+    }
+
+    public int getIdComanda() { return idComanda; }
+    public Client getClient() { return client; }
+    public void setSofer(Sofer sofer) { this.sofer = sofer; }
+    public void setFinalizata(boolean finalizata) { this.finalizata = finalizata; }
+    public boolean isFinalizata() { return finalizata; }
+
+    @Override
+    public String toString() {
+        return "Comanda #" + idComanda + " | Client: " + client.getNume() + " | Status: " + (finalizata ? "Finalizata" : "In curs");
+    }
+}
+
+// 9. Clasa Serviciu (Service)
+class DeliveryService {
+    // Colectii diferite ce folosesc mostenirea (Utilizator)
+    private List<Utilizator> utilizatori = new ArrayList<>();
+    private List<Restaurant> restaurante = new ArrayList<>();
+    private Map<Integer, Comanda> comenzi = new HashMap<>();
+
+    // 1. Adaugare utilizator
+    public void adaugaUtilizator(Utilizator u) {
+        utilizatori.add(u);
+    }
+
+    // 2. Adaugare restaurant
+    public void adaugaRestaurant(Restaurant r) {
+        restaurante.add(r);
+    }
+
+    // 3. Adaugare produs la restaurant
+    public void adaugaProdusInMeniu(Restaurant r, Produs p) {
+        r.adaugaProdus(p);
+    }
+
+    // 4. Afisare restaurante
+    public void afiseazaRestaurante() {
+        System.out.println("--- Restaurante Disponibile ---");
+        for (Restaurant r : restaurante) {
+            System.out.println(r);
+        }
+    }
+
+    // 5. Afisare meniu sortat
+    public void afiseazaMeniuSortat(Restaurant r) {
+        System.out.println("--- Meniu " + r.getNume() + " (Sortat dupa pret) ---");
+        for (Produs p : r.getMeniu()) {
+            System.out.println(p);
+        }
+    }
+
+    // 6. Creare comanda
+    public Comanda creeazaComanda(Client c, Restaurant r, List<Produs> produse) {
+        Comanda comanda = new Comanda(c, r, produse);
+        comenzi.put(comanda.getIdComanda(), comanda);
+        System.out.println("Comanda plasata: " + comanda.getIdComanda());
+        return comanda;
+    }
+
+    // 7. Alocare sofer
+    public void alocaSofer(int idComanda, Sofer s) {
+        Comanda c = comenzi.get(idComanda);
+        if (c != null && !c.isFinalizata()) {
+            c.setSofer(s);
+            System.out.println("Soferul " + s.getNume() + " a fost alocat comenzii #" + idComanda);
+        }
+    }
+
+    // 8. Finalizare comanda
+    public void finalizeazaComanda(int idComanda) {
+        Comanda c = comenzi.get(idComanda);
+        if (c != null) {
+            c.setFinalizata(true);
+            System.out.println("Comanda #" + idComanda + " a fost finalizata.");
+        }
+    }
+
+    // 9. Adaugare recenzie
+    public void adaugaRecenzie(Restaurant r, Client c, int nota, String mesaj) {
+        Recenzie rec = new Recenzie(c, nota, mesaj);
+        r.adaugaRecenzie(rec);
+    }
+
+    // 10. Afisare istoric comenzi client
+    public void afiseazaIstoricComenzi(Client c) {
+        System.out.println("--- Istoric comenzi pt " + c.getNume() + " ---");
+        for (Comanda comanda : comenzi.values()) {
+            if (comanda.getClient().getId() == c.getId()) {
+                System.out.println(comanda);
+            }
+        }
+    }
+}
+
+// 10. Clasa Main
+public class MainVechi {
+    public static void main(String[] args) {
+        DeliveryService service = new DeliveryService();
+
+        Client c1 = new Client(1, "Popescu Ion", new Adresa("Bucuresti", "Str. Lalelelor 12"));
+        Sofer s1 = new Sofer(2, "Ionescu Andrei", "Bicicleta");
+
+        service.adaugaUtilizator(c1);
+        service.adaugaUtilizator(s1);
+
+        Restaurant r1 = new Restaurant("Burger Place");
+        service.adaugaRestaurant(r1);
+
+        service.adaugaProdusInMeniu(r1, new Produs("Cheeseburger", 35.5));
+        service.adaugaProdusInMeniu(r1, new Produs("Cartofi Prajiti", 15.0));
+        service.adaugaProdusInMeniu(r1, new Produs("Suc", 10.0));
+
+        service.afiseazaRestaurante();
+        service.afiseazaMeniuSortat(r1);
+
+        List<Produs> produseComandate = Arrays.asList(
+                new Produs("Cheeseburger", 35.5),
+                new Produs("Suc", 10.0)
+        );
+
+        Comanda comanda = service.creeazaComanda(c1, r1, produseComandate);
+
+        service.alocaSofer(comanda.getIdComanda(), s1);
+        service.finalizeazaComanda(comanda.getIdComanda());
+
+        service.adaugaRecenzie(r1, c1, 5, "Mancare foarte buna!");
+
+        service.afiseazaIstoricComenzi(c1);
+    }
+}
